@@ -148,12 +148,12 @@ def get_best_match(artist, title):
     best_match_idx = max(best_match["score"])
     best_match_idx = best_match["score"].index(best_match_idx)
 
-    best_match_uri = best_match["uri"][best_match_idx]
     best_match_artist = best_match["artist"][best_match_idx]
     best_match_title = best_match["title"][best_match_idx]
+    best_match_uri = best_match["uri"][best_match_idx]
     best_match_score = best_match["score"][best_match_idx]
 
-    return best_match_uri, best_match_artist, best_match_title, best_match_score
+    return best_match_artist, best_match_title, best_match_uri, best_match_score
 
 def extract_local_files(path, sep=" - ", *filetypes):
     """ Extracts information of all immediate files in the given path and outputs to df. """
@@ -185,9 +185,9 @@ def scrape_spotify(df):
     scraped_df = df.apply(scrape, axis=1)
     scraped_df = pd.DataFrame(scraped_df.tolist())
 
-    df["uri"] = scraped_df.iloc[:, 0]
-    df["artists"] = scraped_df.iloc[:, 1]
-    df["title"] = scraped_df.iloc[:, 2]
+    df["artists"] = scraped_df.iloc[:, 0]
+    df["title"] = scraped_df.iloc[:, 1]
+    df["uri"] = scraped_df.iloc[:, 2]
     df["score"] = scraped_df.iloc[:, 3]
 
     return df
