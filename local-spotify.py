@@ -131,12 +131,12 @@ def get_best_match(artist, title):
             artists_found = " ".join(artists_found)
             best_match["artist"].append(artists_found)
 
-            found_title = query[idx]["name"]
-            best_match["title"].append(found_title)
+            title_found = query[idx]["name"]
+            best_match["title"].append(title_found)
 
             best_match["uri"].append(query[idx]["uri"])
 
-            score = get_string_similarity(artists_found + found_title, artist + title)
+            score = get_string_similarity(artists_found + title_found, artist + title)
 
             best_match["id"].append(idx)
             best_match["score"].append(score)
