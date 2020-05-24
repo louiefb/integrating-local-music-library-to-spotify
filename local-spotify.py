@@ -233,7 +233,7 @@ def generate_playlist(df, playlist_name, threshold=0.5):
     add_tracks(df, new_playlist["uri"], threshold)
 
 #local source folder
-path = r"C:\Users\mlfba\Downloads\spotify test"
+path = r"\Music"
 
 #credentials
 user = "yourusername"
