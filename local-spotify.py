@@ -64,12 +64,12 @@ def get_title(path, track, sep):
 
 def get_keywords(query, type="artist"):
     """ Generates list of search terms by separating artists if type is "artist", or by tokenizing query if type is not "artist". """
-    keywords = [query]
     if type == "artist":
-        keywords.extend(re.split(r"[,\&]\s*|\s+feat[\.]*\s+", \
-                             query, \
-                             flags=re.IGNORECASE))
+        pattern = r"[,\&]\s*|\s+feat[\.]*\s+"
+        keywords = [re.sub(pattern, " ", query)]
+        keywords.extend(re.split(pattern, query, flags=re.IGNORECASE))
     else:
+        keywords = [query]
         keywords.extend(re.split(r"[\s\(\)]+", \
                              query, \
                              flags=re.IGNORECASE))
