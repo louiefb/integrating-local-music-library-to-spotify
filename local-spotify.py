@@ -5,7 +5,6 @@ import jaro
 import pandas as pd
 import spotipy.util as util
 
-from collections import defaultdict
 from mutagen.id3 import ID3
 from mutagen.flac import FLAC
 
@@ -89,7 +88,6 @@ def get_keys(artist, title):
 
 def get_q(artist_keys, title_keys):
     """ Detailed Spotify search with artist and title tags. """
-
     artist_keys = '"' + '" OR "'.join(artist_keys) + '"'
     title_keys = '"' + '" OR "'.join(title_keys) + '"'
 
@@ -111,49 +109,54 @@ def get_string_similarity(string1, string2):
     similarity_score = jaro.jaro_winkler_metric(string1, string2)
     return similarity_score
 
+def compare_next_match(current_best_match, query, artist, title):
+    """ Compares the current best match track with the top result from the Spotify search query. """
+    artists_found = query[0]["artists"]
+    artists_found = [artists_found[i]["name"] for i in range(len(artists_found))]
+    artists_found = " ".join(artists_found)
+
+    title_found = query[0]["name"]
+
+    score = get_string_similarity(artists_found + title_found, artist + title)
+
+    if score > current_best_match["score"]:
+        current_best_match["artist"] = artists_found
+        current_best_match["title"] = title_found
+        current_best_match["uri"] = query[0]["uri"]
+        current_best_match["score"] = score        
+    return current_best_match
+
 def get_best_match(artist, title):
     """ Retrieves Spotify track URI, artist, title, and similarity score of closest match to given artist and title. """
     """ Performs both detailed search and tagless, simplified search. """
+    best_match = {"artist":"", "title":"", "uri":"", "score":0}
     artist_keys, title_keys = get_keys(artist, title)
-    query = get_q(artist_keys, title_keys)
-    while not query and len(title_keys) > 1:
-        if get_q_simple(artist_keys, title_keys):
-            query = get_q_simple(artist_keys, title_keys)
-            break
-        title_keys = title_keys[:-1]
-        query = get_q(artist_keys, title_keys)
 
-    if query:
-        best_match = defaultdict(list)
-        for idx in range(len(query)):
-            artists_found = query[idx]["artists"]
-            artists_found = [artists_found[i]["name"] for i in range(len(artists_found))]
-            artists_found = " ".join(artists_found)
-            best_match["artist"].append(artists_found)
+    # Detailed search using every title keyword #
+    for title_key in title_keys:
+        query = get_q(artist_keys, [title_key])
+        if query:
+            best_match = compare_next_match(best_match, query, artist, title)
+    
+    # Detailed search using each artist #
+    if best_match["score"] == 0:
+        for artist_key in artist_keys:
+            query = get_q([artist_key], title_keys)
+            if query:
+                best_match = compare_next_match(best_match, query, artist, title)
 
-            title_found = query[idx]["name"]
-            best_match["title"].append(title_found)
+    # Tagless search using every artist and title keywords #
+    if best_match["score"] == 0:
+        for artist_key in artist_keys:
+            for title_key in title_keys:
+                query = get_q_simple([artist_key], [title_key])
+                if query:
+                    best_match = compare_next_match(best_match, query, artist, title)
 
-            best_match["uri"].append(query[idx]["uri"])
-
-            score = get_string_similarity(artists_found + title_found, artist + title)
-
-            best_match["id"].append(idx)
-            best_match["score"].append(score)
-
-    else:
+    if best_match["score"] == 0:
         print(f"No matches for {artist} - {title}.\n")
-        return "", "", "", 0
 
-    best_match_idx = max(best_match["score"])
-    best_match_idx = best_match["score"].index(best_match_idx)
-
-    best_match_artist = best_match["artist"][best_match_idx]
-    best_match_title = best_match["title"][best_match_idx]
-    best_match_uri = best_match["uri"][best_match_idx]
-    best_match_score = best_match["score"][best_match_idx]
-
-    return best_match_artist, best_match_title, best_match_uri, best_match_score
+    return best_match
 
 def extract_local_files(path, sep=" - ", *filetypes):
     """ Extracts information of all immediate files in the given path and outputs to df. """
