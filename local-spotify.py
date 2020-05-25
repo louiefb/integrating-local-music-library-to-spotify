@@ -25,10 +25,10 @@ def has_ID(file):
         except:
             return False
 
-def get_artist(path, track, sep):
+def get_artist(path, track, sep, skiptag):
     """ Retrieves artist from IDv3 tag, or deduces from 'artist(sep)title' filename. """
     file = os.path.join(path, track)
-    if has_ID(file):
+    if has_ID(file) and not skiptag:
         try:
             file = ID3(file)
             if file.get("TPE1"):
@@ -43,10 +43,10 @@ def get_artist(path, track, sep):
     else:
         return track.split(sep, maxsplit=1)[0]
 
-def get_title(path, track, sep):
+def get_title(path, track, sep, skiptag):
     """ Retrieves title from IDv3 tag, or deduces from 'artist(sep)title' filename. """
     file = os.path.join(path, track)
-    if has_ID(file):
+    if has_ID(file) and not skiptag:
         try:
             file = ID3(file)
             if file.get("TIT2"):
@@ -158,7 +158,7 @@ def get_best_match(artist, title):
 
     return best_match
 
-def extract_local_files(path, sep=" - ", *filetypes):
+def extract_local_files(path, sep=" - ", skiptag=False, *filetypes):
     """ Extracts information of all immediate files in the given path and outputs to df. """
     """ Uses IDv3 tags when possible, otherwise uses filename to deduce 'artist(sep)title'. """
     filetypes = [filetype.lower() for filetype in filetypes]
@@ -177,8 +177,10 @@ def extract_local_files(path, sep=" - ", *filetypes):
     df = df.sort_values("time")
     df.reset_index(drop=True, inplace=True)
 
-    df["local_artist"] = df["filename"].apply(lambda row: get_artist(path, row, sep))
-    df["local_title"] = df["filename"].apply(lambda row: get_title(path, row, sep))
+    df["local_artist"] = df["filename"].apply(lambda row: \
+                                              get_artist(path, row, sep, skiptag=skiptag))
+    df["local_title"] = df["filename"].apply(lambda row: \
+                                             get_title(path, row, sep, skiptag=skiptag))
 
     return df
 
@@ -189,9 +191,9 @@ def scrape_spotify(df):
     scraped_df = pd.DataFrame(scraped_df.tolist())
 
     df["artists"] = scraped_df.iloc[:, 0]
-    df["title"] = scraped_df.iloc[:, 1]
-    df["uri"] = scraped_df.iloc[:, 2]
-    df["score"] = scraped_df.iloc[:, 3]
+    df["title"] = scraped_df.iloc[:, 2]
+    df["uri"] = scraped_df.iloc[:, 3]
+    df["score"] = scraped_df.iloc[:, 1]
 
     return df
 
@@ -251,6 +253,6 @@ token = util.prompt_for_user_token(user, scope, \
 sp = spotipy.Spotify(auth=token)
 
 #add to existing playlist
-df = extract_local_files(path, " - ", "MP3", "flac")
+df = extract_local_files(path, " - ", False, "MP3", "flac")
 df = scrape_spotify(df)
 add_to_playlist(df, threshold=0.6)
