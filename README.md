@@ -11,11 +11,14 @@ All information (including filename, artist tag, title tag, equivalent Spotify t
 
 Please refer to the `API Reference Guide.ipynb` for examples and more details.
 
+### Requirements ###
+An app must first be created on https://developer.spotify.com/ in order to generate a *Client ID* and a *Client Sercret*. These are used to supply the variables *cid* and *secret*, respectively. The API makes use of the Authorization Code Flow to gain an access token from Spotify. Thus, a redirect URL is also required. The *redirect* variable is by default http://127.0.0.1:9090 but can be changed as needed.
+
 ### Dependencies ###
 1. *Spotipy*, the Spotify Web API wrapper for Python
 2. *Pandas*, for organizing library and data onto dataframes
 3. *Mutagen*, for reading IDv3 tags of MP3 and FLAC files
 4. *Jaro*, for the Jaro-Winkler string-similarity scoring algorithm
 
-Louie Balderrama
+Louie Balderrama <br>
 https://www.linkedin.com/in/marioluisbalderrama/
