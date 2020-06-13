@@ -237,22 +237,23 @@ def generate_playlist(df, playlist_name, threshold=0.5):
 
     add_tracks(df, new_playlist["uri"], threshold)
 
-#local source folder
-path = r"\Music"
+if __name__ == "__main__":
+    #local source folder
+    path = r"\Music"
 
-#credentials
-user = "yourusername"
-cid = "9d3d4ea8e8bc4e6db7fc82bf2a7f91cc"
-secret = "**********"
-scope = "playlist-modify-public"
-redirect = r"http://127.0.0.1:9090"
-token = util.prompt_for_user_token(user, scope, \
-                                   client_id=cid, \
-                                   client_secret=secret, \
-                                   redirect_uri=redirect)
-sp = spotipy.Spotify(auth=token)
+    #credentials
+    user = "yourusername"
+    cid = "9d3d4ea8e8bc4e6db7fc82bf2a7f91cc"
+    secret = "**********"
+    scope = "playlist-modify-public"
+    redirect = r"http://127.0.0.1:9090"
+    token = util.prompt_for_user_token(user, scope, \
+                                       client_id=cid, \
+                                       client_secret=secret, \
+                                       redirect_uri=redirect)
+    sp = spotipy.Spotify(auth=token)
 
-#add to existing playlist
-df = extract_local_files(path, " - ", False, "MP3", "flac")
-df = scrape_spotify(df)
-add_to_playlist(df, threshold=0.6)
+    #add to existing playlist
+    df = extract_local_files(path, " - ", False, "MP3", "flac")
+    df = scrape_spotify(df)
+    add_to_playlist(df, threshold=0.6)
